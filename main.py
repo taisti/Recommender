@@ -12,7 +12,7 @@ import pickle
 import re
 import spacy
 from nltk.stem import PorterStemmer
-
+from multiprocessing import Process, Manager
 
 nlp = spacy.load("en_core_web_lg")
 stopwords = nlp.Defaults.stop_words
@@ -28,23 +28,7 @@ def normalize_name(name):
     return stemmed_name
 
 
-dataset_fname = "dataset/dataset.csv"
-if not os.path.isfile(dataset_fname):
-    path_to_zip_file = "dataset/dataset.zip"
-    directory_to_extract_to = "./"
-    with zipfile.ZipFile(path_to_zip_file, 'r') as zip_ref:
-        zip_ref.extractall(directory_to_extract_to)
-
-df = pd.read_csv("dataset/dataset.csv", nrows=1000000)
-
-
-corpus = []
-json_fail_count = 0
-json_fail = []
-
-from multiprocessing import Process, Manager
-
-def dothing(corpus, processing_chunk):  # the managed list `L` passed explicitly.
+def prepare_corpus(corpus, processing_chunk):
     json_fail_count_temp = 0
     json_fail_temp = []
     for ingredients_entities in tqdm(processing_chunk):
@@ -58,26 +42,6 @@ def dothing(corpus, processing_chunk):  # the managed list `L` passed explicitly
         except:
             json_fail_temp.append(ingredients_entities)
             json_fail_count_temp += 1
-
-list_to_process = df["ingredients_entities"].tolist()
-jobs_n = 16
-chunk_n = int(len(list_to_process) / jobs_n)
-with Manager() as manager:
-    L = manager.list()  # <-- can be shared between processes.
-    processes = []
-    for i in tqdm(range(jobs_n)):
-        if i == jobs_n - 1:
-            p = Process(target=dothing, args=(L, list_to_process[i * chunk_n:]))
-        else:
-            p = Process(target=dothing, args=(L,list_to_process[i*chunk_n: (i+1)*chunk_n]))
-        p.start()
-        processes.append(p)
-    for p in processes:
-        p.join()
-    corpus = list(L)
-
-with open('corpus.pickle', 'wb') as handle:
-    pickle.dump(corpus, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def pmi(df):
@@ -100,58 +64,105 @@ def pmi(df):
     # PMI: log( p(y|x) / p(y) )
     # This is the same data, normalized
     ratio = prob_cols_given_row / prob_of_cols
-    ratio[ratio==0] = 0.00001
+    ratio[ratio == 0] = 0.00001
     ratio[np.isnan(ratio)] = 0.00001
     _pmi = np.log(ratio)
     _pmi[_pmi < 0] = 0
 
     return _pmi
 
-vectorizer = CountVectorizer()
-X = vectorizer.fit_transform(corpus)
 
-dtm = np.array(X.toarray())
-
-pca = KernelPCA(n_components=999, n_jobs=jobs_n)
-tdm = dtm.transpose()
-pmi_tdm = pmi(pd.DataFrame(tdm))
-pmi_tdm_reduced = pca.fit_transform(pmi_tdm)
-
-
-
-# with open('pmi_tdm.pickle', 'wb') as handle:
-#     pickle.dump(pmi_tdm, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-
-ingredeint2vector = [tuple([vectorizer.get_feature_names()[idx], elem]) for idx, elem in enumerate(pmi_tdm_reduced)]
-
-def dothing2(ingredient2ingredients, processing_chunk):  # the managed list `L` passed explicitly.
+def generate_ingredient2ingredients(ingredient2ingredients, processing_chunk):  # the managed list `L` passed explicitly.
     for ingredient, vector in tqdm(processing_chunk):
         ingredients_scores = [tuple([ingr, cosine_similarity(vector.reshape(1, -1), vec.reshape(1, -1))]) for ingr, vec
                               in ingredeint2vector if ingr != ingredient]
         ingredient2ingredients[ingredient] = sorted(ingredients_scores, key=lambda x: x[1], reverse=True)[:20]
 
-ingredient2ingredients = {}
-chunk_n = int(len(ingredeint2vector) / jobs_n)
 
-with Manager() as manager:
-    L = manager.dict()  # <-- can be shared between processes.
-    processes = []
-    for i in tqdm(range(jobs_n)):
-        if i == jobs_n - 1:
-            p = Process(target=dothing2, args=(L, ingredeint2vector[i * chunk_n:]))
-        else:
-            p = Process(target=dothing2, args=(L,ingredeint2vector[i*chunk_n: (i+1)*chunk_n]))
-        p.start()
-        processes.append(p)
-    for p in processes:
-        p.join()
-    ingredient2ingredients = dict(L)
+if __name__ == "__main__":
 
+    # load dataset. First downlaod from drive
+    # https://drive.google.com/drive/u/0/folders/1gkaAL3ebbMsxP_IBqGdqfUd_Z5pYMKfW
+    dataset_fname = "dataset/dataset.csv"
+    if not os.path.isfile(dataset_fname):
+        path_to_zip_file = "dataset/dataset.zip"
+        directory_to_extract_to = "./"
+        with zipfile.ZipFile(path_to_zip_file, 'r') as zip_ref:
+            zip_ref.extractall(directory_to_extract_to)
 
-with open('ingredient2ingredients.pickle', 'wb') as handle:
-    pickle.dump(ingredient2ingredients, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    # specify number of rows to process
+    df = pd.read_csv("dataset/dataset.csv", nrows=100000)
 
-ingredient = "chicken"
-ingredient_idx = [idx for idx, elem in enumerate(ingredient2ingredients.keys()) if ingredient == elem][0]
-print(ingredient2ingredients[list(ingredient2ingredients.keys())[ingredient_idx]])
+    # specify number of threads to use during computing
+    jobs_n = 16
+
+    corpus = []
+    json_fail_count = 0
+    json_fail = []
+    list_to_process = df["ingredients_entities"].tolist()
+    chunk_n = int(len(list_to_process) / jobs_n)
+
+    # prepare the corpus of food entities
+    with Manager() as manager:
+        L = manager.list()  # <-- can be shared between processes.
+        processes = []
+        for i in tqdm(range(jobs_n)):
+            if i == jobs_n - 1:
+                p = Process(target=prepare_corpus, args=(L, list_to_process[i * chunk_n:]))
+            else:
+                p = Process(target=prepare_corpus, args=(L, list_to_process[i * chunk_n: (i + 1) * chunk_n]))
+            p.start()
+            processes.append(p)
+        for p in processes:
+            p.join()
+        corpus = list(L)
+
+    # save the prepared corpus
+    with open('corpus.pickle', 'wb') as handle:
+        pickle.dump(corpus, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # create the document term matrix (dtm) as needed for later processing
+    vectorizer = CountVectorizer()
+    X = vectorizer.fit_transform(corpus)
+    dtm = np.array(X.toarray())
+
+    # calculate the pmi of the inverse of dtm
+    tdm = dtm.transpose()
+    pmi_tdm = pmi(pd.DataFrame(tdm))
+
+    # save the pmi_tdm
+    with open('pmi_tdm.pickle', 'wb') as handle:
+        pickle.dump(pmi_tdm, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # reduce the dimensionality before using
+    pca = KernelPCA(n_components=999, n_jobs=jobs_n)
+    pmi_tdm_reduced = pca.fit_transform(pmi_tdm)
+
+    ingredeint2vector = [tuple([vectorizer.get_feature_names()[idx], elem]) for idx, elem in enumerate(pmi_tdm_reduced)]
+
+    ingredient2ingredients = {}
+    chunk_n = int(len(ingredeint2vector) / jobs_n)
+
+    #generate ingredient2ingredients dictionary - the dictionary of 20 most simmilar ingredients for each ingredient based on the pmi dtm and cosine similarity
+    with Manager() as manager:
+        L = manager.dict()  # <-- can be shared between processes.
+        processes = []
+        for i in tqdm(range(jobs_n)):
+            if i == jobs_n - 1:
+                p = Process(target=generate_ingredient2ingredients, args=(L, ingredeint2vector[i * chunk_n:]))
+            else:
+                p = Process(target=generate_ingredient2ingredients, args=(L, ingredeint2vector[i * chunk_n: (i + 1) * chunk_n]))
+            p.start()
+            processes.append(p)
+        for p in processes:
+            p.join()
+        ingredient2ingredients = dict(L)
+
+    #save the ingredient2ingredients dict
+    with open('ingredient2ingredients.pickle', 'wb') as handle:
+        pickle.dump(ingredient2ingredients, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    #check the 'chicken' ingredient for most simmilar ingredients
+    ingredient = "chicken"
+    ingredient_idx = [idx for idx, elem in enumerate(ingredient2ingredients.keys()) if ingredient == elem][0]
+    print(ingredient2ingredients[list(ingredient2ingredients.keys())[ingredient_idx]])
