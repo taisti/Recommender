@@ -55,7 +55,7 @@ def pmi(df):
 
     # p(y|x) probability of each t1 overlap within the row
     row_totals = arr.sum(axis=1).astype(float)
-    prob_cols_given_row = np.divide(arr.T / row_totals).T
+    prob_cols_given_row = np.divide(arr.T, row_totals).T
 
     # p(y) probability of each t1 in the total set
     col_totals = arr.sum(axis=0).astype(float)
