@@ -23,4 +23,6 @@ The baseline recommender is implemented according to the veganizer paper (no lin
 
 7. If the dataset was splitted and for each part was created a sepearate embedding, we can try to inference as the average of all embeddings. For this purpose run: 
  
-    ``inference_multiple_embeddings.py --embedding_dir <the path to the directory where are stored embeddings. Note - the embeddings should have name "ingredeint2vector<number>.pickle", where the number indicates the number of the embedding. If we have 2 embeddings, we should name them: ingredeint2vector0.pickle and ingredeint2vector0.pickle> --source_token <name of the ingredient for which you want to find the most similar substitutes> --topn <number of substitutes you want to find for given ingredient> --datasets_number <number of datasets subsets>``
+    ``inference_multiple_embeddings.py --embedding_dir <the path to the directory where are stored embeddings> --source_token <name of the ingredient for which you want to find the most similar substitutes> --topn <number of substitutes you want to find for given ingredient> --datasets_number <number of datasets subsets>``
+    
+    Note - the embeddings directory should contain embeddings with following name convention "ingredeint2vector<number>.pickle", where the number indicates the number of the embedding. If we have 2 embeddings, we should name them: ingredeint2vector0.pickle and ingredeint2vector0.pickle
