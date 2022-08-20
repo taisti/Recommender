@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     # load dataset. First download from drive
     # https://drive.google.com/drive/u/0/folders/1gkaAL3ebbMsxP_IBqGdqfUd_Z5pYMKfW
-    df = pd.read_csv(dataset_path, error_bad_lines=False, encoding='latin-1', nrows=100000)
+    df = pd.read_csv(dataset_path, error_bad_lines=False, encoding='latin-1')
 
     corpus = []
 
