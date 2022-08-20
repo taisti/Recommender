@@ -13,3 +13,6 @@ The baseline recommender is implemented according to the veganizer paper (no lin
 
       The output is dict that contains the ingredient embedding generated with the use of different models in pickle format.  
 5. Optionally perform inference by running the ``inference.py --embedding_path <path to the ingredient embeddings dictionary> --source_token <name of the ingredient for which you want to find the most similar substitutes> --topn <number of substitutes you want to find for given ingredient>``
+
+6. If the original dataset is too large for the training, we can split it for N equal sized datasets with the use of:
+    ``python divide_dataset.py --dataset_path <path to the original dataset> --n_pieces <number of pieces you want to divide your dataset into>
