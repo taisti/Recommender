@@ -9,10 +9,14 @@ The baseline recommender is implemented according to the veganizer paper (no lin
 2. Install the requirements.
 3. Download the dataset from the google drive https://drive.google.com/drive/u/0/folders/1gkaAL3ebbMsxP_IBqGdqfUd_Z5pYMKfW and extracted to the project directory.
 4. Train the model:
+
     ``python train_baseline.py --dataset_path <path to the downloaded dataset> --ingredient_oriented <True|False - whether use words classified as FOOD entity or other entities during training> --model_type <PMI|FastText which kind of recommender we want> --jobs_n <number of threads to be used> --output_name <output path to ingredient vectors>``
 
       The output is dict that contains the ingredient embedding generated with the use of different models in pickle format.  
-5. Optionally perform inference by running the ``inference.py --embedding_path <path to the ingredient embeddings dictionary> --source_token <name of the ingredient for which you want to find the most similar substitutes> --topn <number of substitutes you want to find for given ingredient>``
+5. Optionally perform inference by running the 
+
+    ``inference.py --embedding_path <path to the ingredient embeddings dictionary> --source_token <name of the ingredient for which you want to find the most similar substitutes> --topn <number of substitutes you want to find for given ingredient>``
 
 6. If the original dataset is too large for the training, we can split it for N equal sized datasets with the use of:
-    ``python divide_dataset.py --dataset_path <path to the original dataset> --n_pieces <number of pieces you want to divide your dataset into>
+
+    ``python divide_dataset.py --dataset_path <path to the original dataset> --n_pieces <number of pieces you want to divide your dataset into>``
