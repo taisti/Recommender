@@ -26,3 +26,6 @@ The baseline recommender is implemented according to the veganizer paper (no lin
     ``inference_multiple_embeddings.py --embedding_dir <the path to the directory where are stored embeddings> --source_token <name of the ingredient for which you want to find the most similar substitutes> --topn <number of substitutes you want to find for given ingredient> --datasets_number <number of datasets subsets>``
     
     Note - the embeddings directory should contain embeddings with following name convention "ingredeint2vector<number>.pickle", where the number indicates the number of the embedding. If we have 2 embeddings, we should name them: ingredeint2vector0.pickle and ingredeint2vector0.pickle
+    
+ 8. We can estimate the substitue with the use of frequent_itemsets. For this purpose we first run generating frequent itemsets from the given dataset:
+    ``python train_frequent_itemstes.py --dataset_path <path to the dataset> --output_name <path to the output file> --jobs_n <number of threads available>`` 
