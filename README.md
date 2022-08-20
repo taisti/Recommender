@@ -9,7 +9,7 @@ The baseline recommender is implemented according to the veganizer paper (no lin
 2. Install the requirements.
 3. Download the dataset from the google drive https://drive.google.com/drive/u/0/folders/1gkaAL3ebbMsxP_IBqGdqfUd_Z5pYMKfW and extracted to the project directory.
 4. Train the model:
-    ``python train_baseline.py``
+    ``python train_baseline.py --dataset_path <path to the downloaded dataset> --ingredient_oriented <True|False - whether use words classified as FOOD entity or other entities during training> --model_type <PMI|FastText which kind of recommender we want> --jobs_n <number of threads to be used> --output_name <output path to ingredient vectors>``
 
       The ``ingredient2ingredents`` dict will be created and saved in pickle format in the project directory. This is a very basic dictionary that returns the 20 most similar components for the given component key. 
 5. Optionally perform inference by running the ``inference.py`` file - the ``ingredient2ingredents`` dictionary must have been previously created. Change the value of the ``ingredient`` variable in the ``inference.py`` file to search for other ingredient replacements.
