@@ -11,5 +11,5 @@ The baseline recommender is implemented according to the veganizer paper (no lin
 4. Train the model:
     ``python train_baseline.py --dataset_path <path to the downloaded dataset> --ingredient_oriented <True|False - whether use words classified as FOOD entity or other entities during training> --model_type <PMI|FastText which kind of recommender we want> --jobs_n <number of threads to be used> --output_name <output path to ingredient vectors>``
 
-      The ``ingredient2ingredents`` dict will be created and saved in pickle format in the project directory. This is a very basic dictionary that returns the 20 most similar components for the given component key. 
-5. Optionally perform inference by running the ``inference.py`` file - the ``ingredient2ingredents`` dictionary must have been previously created. Change the value of the ``ingredient`` variable in the ``inference.py`` file to search for other ingredient replacements.
+      The output is dict that contains the ingredient embedding generated with the use of different models in pickle format.  
+5. Optionally perform inference by running the ``inference.py`` file - the ``ingredientembedding`` dictionary must have been previously created. Change the value of the ``ingredient`` variable in the ``inference.py`` file to search for other ingredient replacements.
