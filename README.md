@@ -20,24 +20,17 @@ The repository contains 5 different baseline recommenders:
 5. Train the Apriori based model
  ``python train_frequent_itemstes.py --dataset_path <path to the dataset> --output_name <path to the output frequent itemset model> --jobs_n <number of threads available>`` 
  
-5. Inference
+6. Inference
 
     ``inference.py --model_path <path to the trained model/embedding (PMI,FastText,Apriori)>  --model_type <type of the entered model (Embedding or Apriori)> --source_token <name of the ingredient for which you want to find the most similar substitutes> --topn <number of substitutes you want to find for given ingredient>``
 
-6. If the original dataset is too large for the training, we can split it for N equal sized datasets with the use of:
+7. If the original dataset is too large for the training, we can split it for N equal sized datasets with the use of:
 
     ``python divide_dataset.py --dataset_path <path to the original dataset> --n_pieces <number of pieces you want to divide your dataset into>``
 
-7. If the dataset was splitted and for each part was created a sepearate embedding, we can try to inference as the average of all embeddings. For this purpose run: 
+8. If the dataset was splitted and for each part was created a sepearate embedding, we can try to inference as the average of all embeddings. For this purpose run: 
  
     ``inference_multiple_embeddings.py --embedding_dir <the path to the directory where are stored embeddings> --source_token <name of the ingredient for which you want to find the most similar substitutes> --topn <number of substitutes you want to find for given ingredient> --datasets_number <number of datasets subsets>``
     
     Note - the embeddings directory should contain embeddings with following name convention "ingredeint2vector<number>.pickle", where the number indicates the number of the embedding. If we have 2 embeddings, we should name them: ingredeint2vector0.pickle and ingredeint2vector0.pickle
     
- 8. We can estimate the substitue with the use of frequent_itemsets. For this purpose we first run generating frequent itemsets from the given dataset:
-    
-    ``python train_frequent_itemstes.py --dataset_path <path to the dataset> --output_name <path to the output frequent itemset model> --jobs_n <number of threads available>`` 
-    
-   Then we can run inference process on frequent itemset:
-    
-    ``python infere_frequent_itemsets.py --frequent_itemest_path <path to the saved frequent itemset model> --source_token <name of the ingredient for which you want to find the most similar substitutes> --topn <number of substitutes you want to find for given ingredient>``
