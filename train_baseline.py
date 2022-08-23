@@ -171,7 +171,7 @@ if __name__ == "__main__":
         tdm = dtm.transpose()
         pmi_tdm = {}
         if ingredient_oriented:
-            pmi_tdm = ingredient_oriented(pd.DataFrame(tdm))
+            pmi_tdm = pmi_ingredient_oriented(pd.DataFrame(tdm))
         else:
             pmi_tdm = pmi_recipe_oriented(pd.DataFrame(tdm))
 
