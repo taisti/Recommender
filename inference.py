@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument("--topn", type=int, default=10,
                         help='Enter the number of substitutes you want to find for given ingredient')
     parser.add_argument("--model_type", type=str, default="FastText",
-                        help='Enter the type of the model: either "Embedding" or "FrequentItems"')
+                        help='Enter the type of the model: either "Embedding" or "Apriori"')
 
     args = parser.parse_args()
 
